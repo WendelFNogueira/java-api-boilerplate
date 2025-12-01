@@ -7,6 +7,7 @@ import br.com.wendelnogueira.javaapiboilerplate.mapper.UserMapper;
 import br.com.wendelnogueira.javaapiboilerplate.service.UsersService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -21,12 +22,13 @@ public class UsersController implements UsersApi {
 
     @Override
     public ResponseEntity<Void> createUser(User user) {
-        UserDto userDto = userMapper.toEntityFromApi(user);
+        UserDto userDto = userMapper.toDtoFromApi(user);
         usersService.createUser(userDto);
         return ResponseEntity.status(201).build();
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteUser(Integer id) {
         usersService.deleteUser(id.longValue());
         return ResponseEntity.noContent().build();
@@ -50,8 +52,9 @@ public class UsersController implements UsersApi {
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> updateUser(Integer id, User user) {
-        UserDto userDto = userMapper.toEntityFromApi(user);
+        UserDto userDto = userMapper.toDtoFromApi(user);
         usersService.updateUser(id.longValue(), userDto);
         return ResponseEntity.ok().build();
     }

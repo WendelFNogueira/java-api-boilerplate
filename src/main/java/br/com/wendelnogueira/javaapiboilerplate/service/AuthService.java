@@ -13,6 +13,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import br.com.wendelnogueira.javaapiboilerplate.dto.UserDto;
+import br.com.wendelnogueira.javaapiboilerplate.mapper.UserMapper;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -21,6 +24,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final UserMapper userMapper;
 
     public LoginResponse login(LoginRequest loginRequest) {
         try {
@@ -42,8 +46,10 @@ public class AuthService {
         }
     }
 
-    public UserEntity register(UserEntity user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return userRepository.save(user);
+    public UserDto register(UserDto userDto) {
+        UserEntity user = userMapper.toEntity(userDto);
+        user.setPassword(passwordEncoder.encode("password")); // Default password
+        UserEntity savedUser = userRepository.save(user);
+        return userMapper.toDto(savedUser);
     }
 }

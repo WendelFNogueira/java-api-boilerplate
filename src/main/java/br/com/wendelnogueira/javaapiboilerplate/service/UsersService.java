@@ -6,6 +6,7 @@ import br.com.wendelnogueira.javaapiboilerplate.mapper.UserMapper;
 import br.com.wendelnogueira.javaapiboilerplate.model.UserEntity;
 import br.com.wendelnogueira.javaapiboilerplate.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,6 +18,7 @@ public class UsersService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
     public List<UserDto> getAllUsers() {
         return userRepository.findAll().stream()
@@ -32,6 +34,7 @@ public class UsersService {
 
     public UserDto createUser(UserDto userDto) {
         UserEntity user = userMapper.toEntity(userDto);
+        user.setPassword(passwordEncoder.encode("password")); // Set default password
         UserEntity savedUser = userRepository.save(user);
         return userMapper.toDto(savedUser);
     }
