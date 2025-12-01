@@ -100,7 +100,15 @@ jwt.expiration=86400000
 
 ### 4. Run the Application
 ```bash
+# Default (H2 database)
 mvn spring-boot:run
+
+# With local profile (MySQL via Docker)
+# Linux/Mac
+SPRING_PROFILES_ACTIVE=local mvn spring-boot:run
+
+# Windows (PowerShell)
+$env:SPRING_PROFILES_ACTIVE = 'local'; .\mvnw.cmd spring-boot:run
 ```
 
 The API will be available at `http://localhost:8080`.
@@ -170,7 +178,7 @@ The `Jenkinsfile` automates build, tests, Docker, and deployment based on branch
 
 - **JWT Authentication**: Bearer tokens for protected endpoints.
 - **Roles**: ADMIN and USER.
-- **Free Endpoints**: `/actuator/health`, `/auth/login`, `/auth/register`.
+- **Free Endpoints**: `/actuator/health`, `/auth/login`, `/auth/register`, `/swagger-ui/**`, `/swagger-ui.html`,`/v3/api-docs/**`.
 
 ## Observability
 

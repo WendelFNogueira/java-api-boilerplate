@@ -66,7 +66,7 @@ pipeline {
 
         stage('Deploy to Prod') {
             when {
-                branch 'main'
+                branch 'master'
             }
             steps {
                 sh "helm upgrade --install java-api-boilerplate-prod ./helm/prod --set image.tag=${DOCKER_TAG} --namespace prod"
