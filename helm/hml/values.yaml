@@ -1,0 +1,54 @@
+replicaCount: 2
+
+image:
+  repository: java-api-boilerplate
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+ingress:
+  enabled: true
+  className: ""
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  hosts:
+    - host: hml.java-api-boilerplate.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+env:
+  - name: SPRING_PROFILES_ACTIVE
+    value: "hml"
+  - name: SPRING_DATASOURCE_URL
+    value: "jdbc:mysql://mysql-service:3306/javaapiboilerplate"
+  - name: SPRING_DATASOURCE_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: mysql-secret
+        key: username
+  - name: SPRING_DATASOURCE_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: mysql-secret
+        key: password
+  - name: JWT_SECRET
+    valueFrom:
+      secretKeyRef:
+        name: jwt-secret
+        key: secret
+  - name: JWT_EXPIRATION
+    value: "86400000"
