@@ -1,5 +1,6 @@
 package br.com.wendelnogueira.javaapiboilerplate.service;
 
+import br.com.wendelnogueira.javaapiboilerplate.model.UserEntity;
 import br.com.wendelnogueira.javaapiboilerplate.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;

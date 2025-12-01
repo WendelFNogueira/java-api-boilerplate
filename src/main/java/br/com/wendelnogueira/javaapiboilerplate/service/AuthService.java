@@ -3,7 +3,7 @@ package br.com.wendelnogueira.javaapiboilerplate.service;
 import br.com.wendelnogueira.javaapiboilerplate.api.model.LoginRequest;
 import br.com.wendelnogueira.javaapiboilerplate.api.model.LoginResponse;
 import br.com.wendelnogueira.javaapiboilerplate.exception.UnauthorizedException;
-import br.com.wendelnogueira.javaapiboilerplate.model.User;
+import br.com.wendelnogueira.javaapiboilerplate.model.UserEntity;
 import br.com.wendelnogueira.javaapiboilerplate.repository.UserRepository;
 import br.com.wendelnogueira.javaapiboilerplate.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +31,7 @@ public class AuthService {
                     )
             );
 
-            User user = (User) authentication.getPrincipal();
+            UserEntity user = (UserEntity) authentication.getPrincipal();
             String token = jwtUtil.generateToken(user.getUsername());
 
             LoginResponse response = new LoginResponse();
@@ -42,7 +42,7 @@ public class AuthService {
         }
     }
 
-    public User register(User user) {
+    public UserEntity register(UserEntity user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
