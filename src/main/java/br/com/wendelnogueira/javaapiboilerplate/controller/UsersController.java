@@ -35,8 +35,9 @@ public class UsersController implements UsersApi {
     }
 
     @Override
-    public ResponseEntity<User> getUserById(Integer id) {
-        UserDto userDto = usersService.getUserById(id.longValue());
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<User> getUserByEmail(String email) {
+        UserDto userDto = usersService.getUserByEmail(email);
         User apiUser = userMapper.toApiModel(userMapper.toEntity(userDto));
         return ResponseEntity.ok(apiUser);
     }

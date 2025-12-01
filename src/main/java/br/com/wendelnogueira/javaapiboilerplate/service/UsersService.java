@@ -32,9 +32,15 @@ public class UsersService {
         return userMapper.toDto(user);
     }
 
+    public UserDto getUserByEmail(String email) {
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("05", "User not found with email: " + email));
+        return userMapper.toDto(user);
+    }
+
     public UserDto createUser(UserDto userDto) {
         UserEntity user = userMapper.toEntity(userDto);
-        user.setPassword(passwordEncoder.encode("password")); // Set default password
+        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
         UserEntity savedUser = userRepository.save(user);
         return userMapper.toDto(savedUser);
     }

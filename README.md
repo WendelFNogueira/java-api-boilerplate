@@ -113,6 +113,21 @@ $env:SPRING_PROFILES_ACTIVE = 'local'; .\mvnw.cmd spring-boot:run
 
 The API will be available at `http://localhost:8080`.
 
+### Default Users
+The application automatically creates the following default users on startup:
+
+- **Admin User**:
+  - Email: `admin@example.com`
+  - Password: `admin123`
+  - Role: ADMIN
+
+- **Regular User**:
+  - Email: `user@example.com`
+  - Password: `user123`
+  - Role: USER
+
+You can use these credentials to log in via `/auth/login` and obtain a JWT token for testing authenticated endpoints.
+
 ### 5. Access Documentation
 - Swagger UI: `http://localhost:8080/swagger-ui.html`
 - OpenAPI Spec: `http://localhost:8080/v3/api-docs`

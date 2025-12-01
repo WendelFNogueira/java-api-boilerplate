@@ -36,6 +36,7 @@ public interface UserMapper {
     @Mapping(target = "id", source = "id")
     @Mapping(target = "name", source = "name")
     @Mapping(target = "email", source = "email")
+    @Mapping(target = "password", source = "password")
     @Mapping(target = "role", expression = "java(\"USER\")")
     UserDto toDtoFromApi(User user);
 }

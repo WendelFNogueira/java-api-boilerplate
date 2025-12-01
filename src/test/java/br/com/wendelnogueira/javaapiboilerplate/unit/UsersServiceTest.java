@@ -101,6 +101,7 @@ class UsersServiceTest {
         UserDto inputDto = new UserDto();
         inputDto.setName("newuser");
         inputDto.setEmail("new@example.com");
+        inputDto.setPassword("password");
 
         UserEntity userEntity = new UserEntity();
         userEntity.setUsername("newuser");

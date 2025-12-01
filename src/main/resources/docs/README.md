@@ -100,22 +100,53 @@ jwt.expiration=86400000
 
 ### 4. Run the Application
 ```bash
-# Default (H2 database)
+# First, install dependencies and compile (required for fresh clones)
+mvn clean install
+
+# Option 1: Default (H2 database, no external dependencies)
 mvn spring-boot:run
 
-# With local profile (MySQL via Docker)
+# Option 2: Local with MySQL (start MySQL first, then API)
+# Start MySQL
+docker-compose up -d mysql
+# Then run API with local profile
 # Linux/Mac
 SPRING_PROFILES_ACTIVE=local mvn spring-boot:run
-
 # Windows (PowerShell)
 $env:SPRING_PROFILES_ACTIVE = 'local'; .\mvnw.cmd spring-boot:run
+
+# Option 3: Full Docker Compose (everything in containers)
+# Build and run all services (includes compilation)
+docker-compose up --build
 ```
 
 The API will be available at `http://localhost:8080`.
 
+### Default Users
+The application automatically creates the following default users on startup:
+
+- **Admin User**:
+  - Email: `admin@example.com`
+  - Password: `admin123`
+  - Role: ADMIN
+
+- **Regular User**:
+  - Email: `user@example.com`
+  - Password: `user123`
+  - Role: USER
+
+You can use these credentials to log in via `/auth/login` and obtain a JWT token for testing authenticated endpoints.
+
 ### 5. Access Documentation
-- Swagger UI: `http://localhost:8080/swagger-ui.html`
+- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
 - OpenAPI Spec: `http://localhost:8080/v3/api-docs`
+
+To test authenticated endpoints in Swagger UI:
+1. Register a user or use default credentials.
+2. Login via `/auth/login` to get a JWT token.
+3. Click the "Authorize" button in Swagger UI.
+4. Enter `Bearer <your-token>` in the value field.
+5. Click "Authorize" to set the token for requests.
 
 ## How to Run Tests
 

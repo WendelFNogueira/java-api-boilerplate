@@ -47,7 +47,7 @@ paths:
           description: Bad request
   /users:
     get:
-      summary: Get all users
+      summary: Get all users (requires @PreAuthorize("hasRole('ADMIN')"))
       operationId: getUsers
       security:
         - bearerAuth: []
@@ -63,7 +63,7 @@ paths:
         '401':
           description: Unauthorized
     post:
-      summary: Create a new user
+      summary: Create a new user (requires @PreAuthorize("hasRole('ADMIN')"))
       operationId: createUser
       security:
         - bearerAuth: []
@@ -78,18 +78,18 @@ paths:
           description: User created
         '401':
           description: Unauthorized
-  /users/{id}:
+  /users/{email}:
     get:
-      summary: Get a user by ID
-      operationId: getUserById
+      summary: Get a user by email (requires @PreAuthorize("hasRole('ADMIN')"))
+      operationId: getUserByEmail
       security:
         - bearerAuth: []
       parameters:
-        - name: id
+        - name: email
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         '200':
           description: User details
@@ -101,8 +101,9 @@ paths:
           description: Unauthorized
         '404':
           description: User not found
+  /users/{id}:
     put:
-      summary: Update a user by ID
+      summary: Update a user by ID (requires @PreAuthorize("hasRole('ADMIN')"))
       operationId: updateUser
       security:
         - bearerAuth: []
@@ -124,7 +125,7 @@ paths:
         '401':
           description: Unauthorized
     delete:
-      summary: Delete a user by ID
+      summary: Delete a user by ID (requires @PreAuthorize("hasRole('ADMIN')"))
       operationId: deleteUser
       security:
         - bearerAuth: []
@@ -149,10 +150,10 @@ components:
     LoginRequest:
       type: object
       required:
-        - username
+        - email
         - password
       properties:
-        username:
+        email:
           type: string
         password:
           type: string
@@ -169,10 +170,14 @@ components:
       required:
         - name
         - email
+        - password
       properties:
         id:
           type: integer
+          readOnly: true
         name:
           type: string
         email:
+          type: string
+        password:
           type: string

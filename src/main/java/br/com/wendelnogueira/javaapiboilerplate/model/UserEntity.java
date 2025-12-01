@@ -1,6 +1,8 @@
 package br.com.wendelnogueira.javaapiboilerplate.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -19,12 +21,14 @@ public class UserEntity implements UserDetails {
     private Long id;
 
     @Column(unique = true, nullable = false)
+    @NotBlank
     private String username;
 
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false)
+    @Column(unique = true, nullable = false)
+    @Email
     private String email;
 
     @Enumerated(EnumType.STRING)

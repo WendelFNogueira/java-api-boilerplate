@@ -71,7 +71,7 @@ class UsersControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "testuser", roles = {"USER"})
+    @WithMockUser(username = "testuser", roles = {"ADMIN"})
     void getUsers_shouldReturn200() throws Exception {
         // Arrange
         UserEntity userEntity = new UserEntity();
@@ -88,38 +88,39 @@ class UsersControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "testuser", roles = {"USER"})
-    void getUserById_shouldReturn200_whenUserExists() throws Exception {
+    @WithMockUser(username = "testuser", roles = {"ADMIN"})
+    void getUserByEmail_shouldReturn200_whenUserExists() throws Exception {
         // Arrange
         UserEntity userEntity = new UserEntity();
         userEntity.setUsername("testuser" + System.currentTimeMillis());
-        userEntity.setEmail("test@example.com");
+        userEntity.setEmail("test" + System.currentTimeMillis() + "@example.com");
         userEntity.setPassword("password");
         UserEntity savedUser = userRepository.save(userEntity);
 
         // Act & Assert
-        mockMvc.perform(get("/users/{id}", savedUser.getId())
+        mockMvc.perform(get("/users/{email}", userEntity.getEmail())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value(userEntity.getUsername()));
     }
 
     @Test
-    @WithMockUser(username = "testuser", roles = {"USER"})
-    void getUserById_shouldReturn404_whenUserDoesNotExist() throws Exception {
+    @WithMockUser(username = "testuser", roles = {"ADMIN"})
+    void getUserByEmail_shouldReturn404_whenUserDoesNotExist() throws Exception {
         // Act & Assert
-        mockMvc.perform(get("/users/{id}", 999L)
+        mockMvc.perform(get("/users/{email}", "nonexistent@example.com")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @WithMockUser(username = "testuser", roles = {"USER"})
+    @WithMockUser(username = "testuser", roles = {"ADMIN"})
     void createUser_shouldReturn201() throws Exception {
         // Arrange
         User user = new User();
         user.setName("newuser");
         user.setEmail("new@example.com");
+        user.setPassword("password");
 
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -143,6 +144,7 @@ class UsersControllerTest {
         User user = new User();
         user.setName("updateduser");
         user.setEmail("updated@example.com");
+        user.setPassword("password");
 
         ObjectMapper objectMapper = new ObjectMapper();
 
