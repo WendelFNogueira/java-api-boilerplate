@@ -100,15 +100,24 @@ jwt.expiration=86400000
 
 ### 4. Run the Application
 ```bash
-# Default (H2 database)
+# First, install dependencies and compile (required for fresh clones)
+mvn clean install
+
+# Option 1: Default (H2 database, no external dependencies)
 mvn spring-boot:run
 
-# With local profile (MySQL via Docker)
+# Option 2: Local with MySQL (start MySQL first, then API)
+# Start MySQL
+docker-compose up -d mysql
+# Then run API with local profile
 # Linux/Mac
 SPRING_PROFILES_ACTIVE=local mvn spring-boot:run
-
 # Windows (PowerShell)
 $env:SPRING_PROFILES_ACTIVE = 'local'; .\mvnw.cmd spring-boot:run
+
+# Option 3: Full Docker Compose (everything in containers)
+# Build and run all services (includes compilation)
+docker-compose up --build
 ```
 
 The API will be available at `http://localhost:8080`.
@@ -129,8 +138,30 @@ The application automatically creates the following default users on startup:
 You can use these credentials to log in via `/auth/login` and obtain a JWT token for testing authenticated endpoints.
 
 ### 5. Access Documentation
-- Swagger UI: `http://localhost:8080/swagger-ui.html`
+- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
 - OpenAPI Spec: `http://localhost:8080/v3/api-docs`
+
+To test authenticated endpoints in Swagger UI:
+1. Register a user or use default credentials.
+2. Login via `/auth/login` to get a JWT token. 
+3. 
+3. Click the "Authorize" button in Swagger UI.
+4. Enter `Bearer <your-token>` in the value field.
+5. Click "Authorize" to set the token for requests.
+
+### Updating OpenAPI Specification
+If you modify the `java-api-boilerplate.yaml` file, regenerate the OpenAPI code to update the interfaces and Swagger UI:
+
+```bash
+# Regenerate OpenAPI code
+mvn clean generate-sources
+
+# Then recompile and run
+mvn clean compile
+mvn spring-boot:run
+```
+
+The OpenAPI Generator plugin automatically regenerates code during the build process for fresh clones or when sources are missing. For incremental changes to the YAML, manual regeneration is required.
 
 ## How to Run Tests
 

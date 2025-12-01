@@ -32,19 +32,25 @@ resources:
 
 env:
   - name: SPRING_PROFILES_ACTIVE
+    value: "deploy"
+  - name: ENVIRONMENT
     value: "hml"
-  - name: SPRING_DATASOURCE_URL
+  - name: MYSQL_URL
     value: "jdbc:mysql://mysql-service:3306/javaapiboilerplate"
-  - name: SPRING_DATASOURCE_USERNAME
+  - name: MYSQL_USER
     valueFrom:
       secretKeyRef:
         name: mysql-secret
         key: username
-  - name: SPRING_DATASOURCE_PASSWORD
+  - name: MYSQL_PASSWORD
     valueFrom:
       secretKeyRef:
         name: mysql-secret
         key: password
+  - name: MYSQL_DRIVER
+    value: "com.mysql.cj.jdbc.Driver"
+  - name: JPA_PLATFORM
+    value: "org.hibernate.dialect.MySQLDialect"
   - name: JWT_SECRET
     valueFrom:
       secretKeyRef:
@@ -52,3 +58,13 @@ env:
         key: secret
   - name: JWT_EXPIRATION
     value: "86400000"
+  - name: DATADOG_API_KEY
+    valueFrom:
+      secretKeyRef:
+        name: datadog-secret
+        key: api-key
+  - name: DATADOG_APP_KEY
+    valueFrom:
+      secretKeyRef:
+        name: datadog-secret
+        key: app-key

@@ -23,9 +23,10 @@ public class JwtUtil {
         return Algorithm.HMAC256(secret);
     }
 
-    public String generateToken(String username) {
+    public String generateToken(String email, String role) {
         return JWT.create()
-                .withSubject(username)
+                .withSubject(email)
+                .withClaim("role", role)
                 .withIssuedAt(new Date())
                 .withExpiresAt(new Date(System.currentTimeMillis() + expiration))
                 .sign(getAlgorithm());

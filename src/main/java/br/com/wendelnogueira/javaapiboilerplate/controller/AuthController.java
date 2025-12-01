@@ -6,6 +6,7 @@ import br.com.wendelnogueira.javaapiboilerplate.api.model.LoginResponse;
 import br.com.wendelnogueira.javaapiboilerplate.api.model.User;
 import br.com.wendelnogueira.javaapiboilerplate.dto.UserDto;
 import br.com.wendelnogueira.javaapiboilerplate.mapper.UserMapper;
+import br.com.wendelnogueira.javaapiboilerplate.model.UserEntity;
 import br.com.wendelnogueira.javaapiboilerplate.service.UsersService;
 import br.com.wendelnogueira.javaapiboilerplate.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +31,8 @@ public class AuthController implements AuthApi {
                 new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
         );
 
-        String token = jwtUtil.generateToken(authentication.getName());
+        UserEntity user = (UserEntity) authentication.getPrincipal();
+        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
         LoginResponse response = new LoginResponse();
         response.setToken(token);
         return ResponseEntity.ok(response);

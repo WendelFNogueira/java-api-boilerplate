@@ -29,6 +29,12 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       JWT_SECRET: mySecretKey
       JWT_EXPIRATION: 86400000
+      SPRING_AUTOCONFIGURE_EXCLUDE: io.opentelemetry.instrumentation.spring.autoconfigure.OpenTelemetryAutoConfiguration,org.springframework.boot.actuate.autoconfigure.metrics.export.datadog.DatadogMetricsExportAutoConfiguration,org.springframework.boot.actuate.autoconfigure.observation.ObservationAutoConfiguration,org.springframework.boot.actuate.autoconfigure.observation.web.servlet.WebMvcObservationAutoConfiguration
+      MANAGEMENT_DATADOG_METRICS_EXPORT_ENABLED: "false"
+      MANAGEMENT_DATADOG_METRICS_EXPORT_APIKEY: "dummy"
+      MANAGEMENT_TRACING_ENABLED: "false"
+      MANAGEMENT_OBSERVATIONS_ENABLED: "false"
+      MANAGEMENT_METRICS_ENABLED: "false"
     ports:
       - "8080:8080"
     depends_on:

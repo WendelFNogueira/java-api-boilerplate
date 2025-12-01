@@ -36,7 +36,7 @@ public class AuthService {
             );
 
             UserEntity user = (UserEntity) authentication.getPrincipal();
-            String token = jwtUtil.generateToken(user.getUsername());
+            String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
 
             LoginResponse response = new LoginResponse();
             response.setToken(token);

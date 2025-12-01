@@ -143,10 +143,25 @@ You can use these credentials to log in via `/auth/login` and obtain a JWT token
 
 To test authenticated endpoints in Swagger UI:
 1. Register a user or use default credentials.
-2. Login via `/auth/login` to get a JWT token.
+2. Login via `/auth/login` to get a JWT token. 
+3. 
 3. Click the "Authorize" button in Swagger UI.
 4. Enter `Bearer <your-token>` in the value field.
 5. Click "Authorize" to set the token for requests.
+
+### Updating OpenAPI Specification
+If you modify the `java-api-boilerplate.yaml` file, regenerate the OpenAPI code to update the interfaces and Swagger UI:
+
+```bash
+# Regenerate OpenAPI code
+mvn clean generate-sources
+
+# Then recompile and run
+mvn clean compile
+mvn spring-boot:run
+```
+
+The OpenAPI Generator plugin automatically regenerates code during the build process for fresh clones or when sources are missing. For incremental changes to the YAML, manual regeneration is required.
 
 ## How to Run Tests
 
