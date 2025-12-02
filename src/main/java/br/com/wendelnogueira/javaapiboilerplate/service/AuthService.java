@@ -2,6 +2,7 @@ package br.com.wendelnogueira.javaapiboilerplate.service;
 
 import br.com.wendelnogueira.javaapiboilerplate.dto.UserDto;
 import br.com.wendelnogueira.javaapiboilerplate.exception.ConflictException;
+import br.com.wendelnogueira.javaapiboilerplate.exception.UnauthorizedException;
 import br.com.wendelnogueira.javaapiboilerplate.mapper.UserMapper;
 import br.com.wendelnogueira.javaapiboilerplate.model.UserEntity;
 import br.com.wendelnogueira.javaapiboilerplate.repository.UserRepository;
@@ -10,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,12 +30,20 @@ public class AuthService {
 
     public UserEntity login(String email, String password) {
         logger.info("Attempting login for user: {}", email);
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(email, password)
-        );
-        UserEntity user = (UserEntity) authentication.getPrincipal();
-        logger.info("Login successful for user: {}", email);
-        return user;
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(email, password)
+            );
+            UserEntity user = (UserEntity) authentication.getPrincipal();
+            logger.info("Login successful for user: {}", email);
+            return user;
+        } catch (BadCredentialsException e) {
+            logger.warn("Invalid credentials for user: {}", email);
+            throw new UnauthorizedException("04", "Invalid credentials provided.");
+        } catch (Exception e) {
+            logger.error("Unexpected authentication error for user: {}", email, e);
+            throw new UnauthorizedException("02", "There was an unexpected error with your authorization.");
+        }
     }
 
     public UserDto registerUser(UserDto userDto) {

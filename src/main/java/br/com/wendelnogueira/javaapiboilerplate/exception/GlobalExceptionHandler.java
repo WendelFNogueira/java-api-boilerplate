@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -72,5 +73,19 @@ public class GlobalExceptionHandler {
         log.error("Data integrity violation: {}", ex.getMessage());
         String message = messageExceptionFormatter.getMessage("07", ex.getMessage());
         return ResponseEntity.status(409).body(new ErrorResponse("07", message));
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+        log.error("Validation failed: {}", ex.getMessage());
+        String message = messageExceptionFormatter.getMessage("08", ex.getMessage());
+        return ResponseEntity.badRequest().body(new ErrorResponse("08", message));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
+        log.error("Unexpected error: {}", ex.getMessage(), ex);
+        String message = messageExceptionFormatter.getMessage("07", ex.getMessage());
+        return ResponseEntity.status(500).body(new ErrorResponse("07", message));
     }
 }

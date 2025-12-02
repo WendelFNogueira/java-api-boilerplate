@@ -1,6 +1,8 @@
 package br.com.wendelnogueira.javaapiboilerplate.security;
 
+import br.com.wendelnogueira.javaapiboilerplate.exception.UnauthorizedException;
 import br.com.wendelnogueira.javaapiboilerplate.util.JwtUtil;
+import com.auth0.jwt.exceptions.JWTDecodeException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -40,7 +42,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             jwt = authorizationHeader.substring(7);
-            username = jwtUtil.extractUsername(jwt);
+            try {
+                username = jwtUtil.extractUsername(jwt);
+            } catch (JWTDecodeException e) {
+                log.warn("Invalid JWT token: {}", e.getMessage());
+                throw new UnauthorizedException("01", "There was an error with your authorization.");
+            }
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
