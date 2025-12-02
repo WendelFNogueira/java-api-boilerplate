@@ -4,6 +4,7 @@ import br.com.wendelnogueira.javaapiboilerplate.util.MessageExceptionFormatter;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -57,5 +58,19 @@ public class GlobalExceptionHandler {
         log.error("Business exception: {}", ex.getMessage());
         String message = messageExceptionFormatter.getMessage(ex.getCode(), ex.getMessage());
         return ResponseEntity.status(422).body(new ErrorResponse(ex.getCode(), message));
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ErrorResponse> handleConflictException(ConflictException ex) {
+        log.error("Conflict: {}", ex.getMessage());
+        String message = messageExceptionFormatter.getMessage(ex.getCode(), ex.getMessage());
+        return ResponseEntity.status(409).body(new ErrorResponse(ex.getCode(), message));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+        log.error("Data integrity violation: {}", ex.getMessage());
+        String message = messageExceptionFormatter.getMessage("07", ex.getMessage());
+        return ResponseEntity.status(409).body(new ErrorResponse("07", message));
     }
 }

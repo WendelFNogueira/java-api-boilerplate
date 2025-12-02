@@ -27,6 +27,7 @@ public class UsersController implements UsersApi {
     private final UserMapper userMapper;
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> createUser(User user) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         log.info("createUser called by user: {}", auth.getName());
