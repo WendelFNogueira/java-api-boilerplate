@@ -14,17 +14,17 @@ Feature: User Management
     Then I should receive a list of users
     And the list should contain the user "Jane Doe"
 
-  Scenario: Get user by ID
+  Scenario: Get user by email
     Given there is a user with name "Bob Smith" and email "bob@example.com"
-    When I request the user by ID
+    When I request the user by email "bob@example.com"
     Then I should receive the user details for "Bob Smith"
 
   Scenario: Update user
     Given there is a user with name "Alice Johnson" and email "alice@example.com"
-    When I update the user with name "Alice Updated" and email "alice.updated@example.com"
+    When I update the user with email "alice@example.com" to name "Alice Updated" and email "alice.updated@example.com"
     Then the user should be updated successfully
 
   Scenario: Delete user
     Given there is a user with name "Charlie Brown" and email "charlie@example.com"
-    When I delete the user
+    When I delete the user with email "charlie@example.com"
     Then the user should be deleted successfully

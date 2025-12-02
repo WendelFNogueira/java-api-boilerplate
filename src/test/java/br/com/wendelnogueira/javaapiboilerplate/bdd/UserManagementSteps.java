@@ -1,6 +1,5 @@
 package br.com.wendelnogueira.javaapiboilerplate.bdd;
 
-import br.com.wendelnogueira.javaapiboilerplate.api.model.User;
 import br.com.wendelnogueira.javaapiboilerplate.dto.UserDto;
 import br.com.wendelnogueira.javaapiboilerplate.mapper.UserMapper;
 import br.com.wendelnogueira.javaapiboilerplate.model.UserEntity;
@@ -33,11 +32,18 @@ public class UserManagementSteps {
             .withUsername("test")
             .withPassword("test");
 
+    static {
+        mysql.start();
+    }
+
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url", mysql::getJdbcUrl);
         registry.add("spring.datasource.username", mysql::getUsername);
         registry.add("spring.datasource.password", mysql::getPassword);
+        registry.add("spring.datasource.driver-class-name", () -> "com.mysql.cj.jdbc.Driver");
+        registry.add("spring.jpa.database-platform", () -> "org.hibernate.dialect.MySQLDialect");
+        registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
     }
 
     @Autowired
@@ -65,6 +71,7 @@ public class UserManagementSteps {
         UserDto userDto = new UserDto();
         userDto.setName(name);
         userDto.setEmail(email);
+        userDto.setPassword("password123");
         userDto.setRole("USER");
 
         createdUser = usersService.createUser(userDto);
@@ -87,6 +94,7 @@ public class UserManagementSteps {
         UserEntity userEntity = new UserEntity();
         userEntity.setUsername(name);
         userEntity.setEmail(email);
+        userEntity.setPassword("password123");
         userEntity.setRole(UserEntity.Role.USER);
         userRepository.save(userEntity);
     }
@@ -107,13 +115,9 @@ public class UserManagementSteps {
         assertTrue(allUsers.stream().anyMatch(user -> name.equals(user.getName())));
     }
 
-    @When("I request the user by ID")
-    public void iRequestTheUserByID() {
-        // Assuming we have a way to get the last created user ID, for simplicity, get the first user
-        List<UserDto> users = usersService.getAllUsers();
-        if (!users.isEmpty()) {
-            retrievedUser = usersService.getUserById(users.get(0).getId().longValue());
-        }
+    @When("I request the user by email {string}")
+    public void iRequestTheUserByEmail(String email) {
+        retrievedUser = usersService.getUserByEmail(email);
     }
 
     @Then("I should receive the user details for {string}")
@@ -122,15 +126,14 @@ public class UserManagementSteps {
         assertEquals(name, retrievedUser.getName());
     }
 
-    @When("I update the user with name {string} and email {string}")
-    public void iUpdateTheUserWithNameAndEmail(String name, String email) {
-        List<UserDto> users = usersService.getAllUsers();
-        if (!users.isEmpty()) {
-            UserDto updateDto = new UserDto();
-            updateDto.setName(name);
-            updateDto.setEmail(email);
-            updatedUser = usersService.updateUser(users.get(0).getId().longValue(), updateDto);
-        }
+    @When("I update the user with email {string} to name {string} and email {string}")
+    public void iUpdateTheUserWithEmailToNameAndEmail(String oldEmail, String newName, String newEmail) {
+        UserDto existingUser = usersService.getUserByEmail(oldEmail);
+        UserDto updateDto = new UserDto();
+        updateDto.setName(newName);
+        updateDto.setEmail(newEmail);
+        updateDto.setRole(existingUser.getRole());
+        updatedUser = usersService.updateUser(existingUser.getId().longValue(), updateDto);
     }
 
     @Then("the user should be updated successfully")
@@ -138,17 +141,16 @@ public class UserManagementSteps {
         assertNotNull(updatedUser);
     }
 
-    @When("I delete the user")
-    public void iDeleteTheUser() {
-        List<UserDto> users = usersService.getAllUsers();
-        if (!users.isEmpty()) {
-            userIdToDelete = users.get(0).getId().longValue();
-            usersService.deleteUser(userIdToDelete);
-        }
+    @When("I delete the user with email {string}")
+    public void iDeleteTheUserWithEmail(String email) {
+        UserDto userToDelete = usersService.getUserByEmail(email);
+        userIdToDelete = userToDelete.getId().longValue();
+        usersService.deleteUser(userIdToDelete);
     }
 
     @Then("the user should be deleted successfully")
     public void theUserShouldBeDeletedSuccessfully() {
-        assertThrows(Exception.class, () -> usersService.getUserById(userIdToDelete));
+        // Verify the user is deleted by trying to find it
+        assertThrows(Exception.class, () -> usersService.getUserByEmail("charlie@example.com"));
     }
 }

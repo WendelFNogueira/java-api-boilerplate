@@ -21,28 +21,37 @@ java-api-boilerplate/
 ├── src/main/java/br/com/wendelnogueira/javaapiboilerplate/
 │   ├── api/                 # Generated OpenAPI interfaces
 │   ├── controller/          # REST Controllers
-│   ├── service/             # Business logic
+│   ├── service/             # Business logic (AuthService, UsersService)
 │   ├── repository/          # JPA data access
 │   ├── model/               # JPA entities
 │   ├── dto/                 # Data Transfer Objects
 │   ├── mapper/              # MapStruct mappings
-│   ├── exception/           # Custom exceptions
+│   ├── exception/           # Custom exceptions and GlobalExceptionHandler
 │   ├── security/            # JWT security configurations
 │   ├── config/              # General configurations
-│   └── util/                # Utilities
-├── src/test/java/           # Tests
-│   ├── unit/                # Unit tests
-│   ├── integration/         # Integration tests with Testcontainers
-│   └── bdd/                 # BDD tests with Cucumber
-├── performance/             # JMeter scripts
-├── helm/                    # Helm Charts per environment
+│   └── util/                # Utilities (JwtUtil, MessageExceptionFormatter)
+├── src/main/resources/
+│   ├── application.properties          # Common configs
+│   ├── application-local.properties    # Local overrides (MySQL, disable Datadog)
+│   ├── application-deploy.properties   # Deploy overrides (env vars, enable Datadog)
+│   ├── java-api-boilerplate.yaml       # OpenAPI 3.0 spec
+│   ├── messages_en.properties          # Error messages
+│   └── docs/README.md                  # This documentation
+├── src/test/
+│   ├── java/
+│   │   ├── unit/                       # Unit tests (AuthControllerTest, UsersServiceTest)
+│   │   ├── integration/                # Integration tests with Testcontainers
+│   │   └── bdd/                        # BDD tests with Cucumber
+│   └── resources/
+├── performance/                        # JMeter scripts (users-performance.jmx)
+├── helm/                               # Helm Charts per environment
 │   ├── dev/
 │   ├── hml/
 │   └── prod/
-├── docker-compose.yml       # Local environment with Docker
-├── Dockerfile               # Containerization
-├── Jenkinsfile              # CI/CD
-└── README.md                # This documentation
+├── docker-compose.yml                  # Local environment with Docker (API + MySQL)
+├── Dockerfile                          # Containerization
+├── Jenkinsfile                         # CI/CD pipeline
+└── README.md                           # This documentation
 ```
 
 ## Technologies
@@ -54,7 +63,7 @@ java-api-boilerplate/
 - **OpenAPI Generator** (Swagger)
 - **MapStruct** (Mappings)
 - **Lombok** (Reduce boilerplate)
-- **Resilience4j** (Circuit Breaker, Retry, etc.)
+- **Resilience4j** (Retry)
 - **OTEL + Datadog** (Observability)
 - **Testcontainers** (Integration tests)
 - **Cucumber** (BDD)
@@ -70,6 +79,7 @@ java-api-boilerplate/
 - Docker + Docker Compose
 - MySQL (local or via Docker)
 - Kubernetes + Helm (for deployment)
+- Apache JMeter (for performance tests)
 
 ## How to Run Locally
 
@@ -80,43 +90,31 @@ cd java-api-boilerplate
 ```
 
 ### 2. Configure Database
+The application uses MySQL. You can run it locally or via Docker.
+
 Option 1: Local MySQL
 - Install MySQL and create database `javaapiboilerplate`.
 
-Option 2: Via Docker Compose
+Option 2: Via Docker Compose (recommended)
 ```bash
 docker-compose up -d mysql
 ```
+This starts a MySQL container on port 3306.
 
 ### 3. Configure Environment Variables
-Create file `application-local.properties`:
-```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/javaapiboilerplate
-spring.datasource.username=user
-spring.datasource.password=password
-jwt.secret=mySecretKey
-jwt.expiration=86400000
-```
+The `application-local.properties` is already configured for local development with MySQL container settings. If using local MySQL, adjust the URL.
 
 ### 4. Run the Application
 ```bash
-# First, install dependencies and compile (required for fresh clones)
+# Install dependencies and compile
 mvn clean install
 
-# Option 1: Default (H2 database, no external dependencies)
-mvn spring-boot:run
+# Run with local profile (uses application-local.properties)
+mvn spring-boot:run -Dspring-boot.run.profiles=local
+```
 
-# Option 2: Local with MySQL (start MySQL first, then API)
-# Start MySQL
-docker-compose up -d mysql
-# Then run API with local profile
-# Linux/Mac
-SPRING_PROFILES_ACTIVE=local mvn spring-boot:run
-# Windows (PowerShell)
-$env:SPRING_PROFILES_ACTIVE = 'local'; .\mvnw.cmd spring-boot:run
-
-# Option 3: Full Docker Compose (everything in containers)
-# Build and run all services (includes compilation)
+Or via Docker Compose (full containerized):
+```bash
 docker-compose up --build
 ```
 
@@ -143,52 +141,45 @@ You can use these credentials to log in via `/auth/login` and obtain a JWT token
 
 To test authenticated endpoints in Swagger UI:
 1. Register a user or use default credentials.
-2. Login via `/auth/login` to get a JWT token. 
-3. 
+2. Login via `/auth/login` to get a JWT token.
 3. Click the "Authorize" button in Swagger UI.
 4. Enter `Bearer <your-token>` in the value field.
 5. Click "Authorize" to set the token for requests.
 
 ### Updating OpenAPI Specification
-If you modify the `java-api-boilerplate.yaml` file, regenerate the OpenAPI code to update the interfaces and Swagger UI:
+If you modify the `java-api-boilerplate.yaml` file, regenerate the OpenAPI code:
 
 ```bash
-# Regenerate OpenAPI code
-mvn clean generate-sources
-
-# Then recompile and run
+mvn clean generate-resources
 mvn clean compile
-mvn spring-boot:run
 ```
-
-The OpenAPI Generator plugin automatically regenerates code during the build process for fresh clones or when sources are missing. For incremental changes to the YAML, manual regeneration is required.
 
 ## How to Run Tests
 
 ### Unit Tests
 ```bash
-mvn test -Dtest="*Test"
+mvn test -Dtest="*Test" -Dspring.profiles.active=test
 ```
 
 ### Integration Tests (with Testcontainers)
 ```bash
-mvn test -Dtest="*ControllerTest"
+mvn test -Dtest="*ControllerTest" -Dspring.profiles.active=test
 ```
 
 ### BDD Tests (Cucumber)
 ```bash
-mvn test -Dtest="*CucumberTest"
+mvn test -Dtest="*CucumberTest" -Dspring.profiles.active=test
 ```
 
 ### All Tests
 ```bash
-mvn test
+mvn test -Dspring.profiles.active=test
 ```
 
 ## How to Run JMeter (Performance)
 
 ### 1. Install JMeter
-Download and install Apache JMeter.
+Download and install Apache JMeter from https://jmeter.apache.org/.
 
 ### 2. Run Scripts
 ```bash
@@ -196,46 +187,70 @@ jmeter -n -t performance/users-performance.jmx -l results.jtl
 ```
 
 ### 3. View Reports
-Open `results.jtl` in JMeter or generate HTML report.
+Open `results.jtl` in JMeter or generate HTML report:
+```bash
+jmeter -g results.jtl -o report/
+```
 
 ## Deployment
 
 ### Local Development
 ```bash
-docker-compose up
+docker-compose up --build
 ```
 
 ### Kubernetes via Helm
 ```bash
 # Dev
-helm install java-api-boilerplate ./helm/dev --namespace dev
+helm upgrade --install java-api-boilerplate-dev ./helm/dev --namespace dev
 
 # HML
-helm install java-api-boilerplate ./helm/hml --namespace hml
+helm upgrade --install java-api-boilerplate-hml ./helm/hml --namespace hml
 
 # Prod
-helm install java-api-boilerplate ./helm/prod --namespace prod
+helm upgrade --install java-api-boilerplate-prod ./helm/prod --namespace prod
 ```
 
 ### CI/CD via Jenkins
-The `Jenkinsfile` automates build, tests, Docker, and deployment based on branch.
+The `Jenkinsfile` automates:
+- Checkout
+- Build (mvn clean compile)
+- Test (mvn test)
+- Package (mvn package -DskipTests)
+- Build Docker Image
+- Push to ECR
+- Deploy to Dev/HML/Prod based on branch (develop/release/master)
 
 ## Security
 
 - **JWT Authentication**: Bearer tokens for protected endpoints.
 - **Roles**: ADMIN and USER.
-- **Free Endpoints**: `/actuator/health`, `/auth/login`, `/auth/register`, `/swagger-ui/**`, `/swagger-ui.html`,`/v3/api-docs/**`.
+- **Free Endpoints**: `/actuator/health`, `/auth/login`, `/auth/register`, `/swagger-ui/**`, `/v3/api-docs/**`.
 
 ## Observability
 
-- **OTEL**: Distributed tracing.
-- **Datadog**: Metrics and logs.
-- **Actuator**: Health checks.
+- **OTEL**: Distributed tracing (enabled in deploy profile).
+- **Datadog**: Metrics and logs (enabled in deploy profile).
+- **Actuator**: Health checks, Prometheus metrics.
+
+## Error Handling
+
+The API uses standardized error responses with codes and messages:
+
+- 01: Error with authorization (JWT issues)
+- 02: Unexpected error with authorization
+- 03: Authentication error
+- 04: Invalid credentials
+- 05: User not found
+- 06: Access denied
+- 07: Unexpected error
+- 08: Invalid request body
+- 09: User already exists
 
 ## Standards and Conventions
 
 ### Branches
-- `main`: Production
+- `master`: Production
 - `develop`: Development
 - `feature/*`: New features
 - `release/*`: Releases
