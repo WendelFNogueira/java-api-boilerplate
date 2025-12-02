@@ -6,11 +6,14 @@ info:
 servers:
   - url: http://localhost:8080
     description: Local server
+security:
+  - bearerAuth: []
 paths:
   /auth/login:
     post:
       summary: Login and get bearer token
       operationId: login
+      security: []
       requestBody:
         required: true
         content:
@@ -24,12 +27,29 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "08"
+                message: "The request body is invalid or malformed."
         '401':
           description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "04"
+                message: "Invalid credentials provided."
   /auth/register:
     post:
       summary: Register a new user
       operationId: register
+      security: []
       requestBody:
         required: true
         content:
@@ -45,6 +65,13 @@ paths:
                 $ref: '#/components/schemas/User'
         '400':
           description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "08"
+                message: "The request body is invalid or malformed."
   /users:
     get:
       summary: Get all users (requires @PreAuthorize("hasRole('ADMIN')"))
@@ -62,6 +89,22 @@ paths:
                   $ref: '#/components/schemas/User'
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "03"
+                message: "Authentication error."
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "06"
+                message: "Access denied. You do not have permission to perform this action."
     post:
       summary: Create a new user (requires @PreAuthorize("hasRole('ADMIN')"))
       operationId: createUser
@@ -76,8 +119,38 @@ paths:
       responses:
         '201':
           description: User created
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "User created successfully"
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "03"
+                message: "Authentication error."
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "08"
+                message: "The request body is invalid or malformed."
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "06"
+                message: "Access denied. You do not have permission to perform this action."
   /users/{email}:
     get:
       summary: Get a user by email (requires @PreAuthorize("hasRole('ADMIN')"))
@@ -99,8 +172,31 @@ paths:
                 $ref: '#/components/schemas/User'
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "03"
+                message: "Authentication error."
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "06"
+                message: "Access denied. You do not have permission to perform this action."
         '404':
           description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "05"
+                message: "User not found with the given ID."
   /users/{id}:
     put:
       summary: Update a user by ID (requires @PreAuthorize("hasRole('ADMIN')"))
@@ -122,8 +218,47 @@ paths:
       responses:
         '200':
           description: User updated
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "User updated successfully"
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "03"
+                message: "Authentication error."
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "08"
+                message: "The request body is invalid or malformed."
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "06"
+                message: "Access denied. You do not have permission to perform this action."
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "05"
+                message: "User not found with the given ID."
     delete:
       summary: Delete a user by ID (requires @PreAuthorize("hasRole('ADMIN')"))
       operationId: deleteUser
@@ -136,10 +271,40 @@ paths:
           schema:
             type: integer
       responses:
-        '204':
+        '200':
           description: User deleted
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "User deleted successfully"
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "03"
+                message: "Authentication error."
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "06"
+                message: "Access denied. You do not have permission to perform this action."
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "05"
+                message: "User not found with the given ID."
 components:
   securitySchemes:
     bearerAuth:
@@ -164,7 +329,7 @@ components:
       properties:
         token:
           type: string
-          description: Bearer token for authentication
+          description: Bearer token for authentication. Copy this token and use it in the Authorize button as 'Bearer <token>' to authenticate requests to protected endpoints.
     User:
       type: object
       required:
@@ -181,3 +346,15 @@ components:
           type: string
         password:
           type: string
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Error message

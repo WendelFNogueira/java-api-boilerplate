@@ -173,10 +173,10 @@ class UsersControllerTest {
     }
 
     @Test
-    void getUsers_shouldReturn403_whenNotAuthenticated() throws Exception {
+    void getUsers_shouldReturn401_whenNotAuthenticated() throws Exception {
         // Act & Assert
         mockMvc.perform(get("/users")
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 }
