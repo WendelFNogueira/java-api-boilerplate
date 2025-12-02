@@ -18,40 +18,50 @@ This is a corporate boilerplate for Java APIs using Spring Boot 3.5+, designed t
 ### Directory Structure
 ```
 java-api-boilerplate/
-├── src/main/java/br/com/wendelnogueira/javaapiboilerplate/
-│   ├── api/                 # Generated OpenAPI interfaces
-│   ├── controller/          # REST Controllers
-│   ├── service/             # Business logic (AuthService, UsersService)
-│   ├── repository/          # JPA data access
-│   ├── model/               # JPA entities
-│   ├── dto/                 # Data Transfer Objects
-│   ├── mapper/              # MapStruct mappings
-│   ├── exception/           # Custom exceptions and GlobalExceptionHandler
-│   ├── security/            # JWT security configurations
-│   ├── config/              # General configurations
-│   └── util/                # Utilities (JwtUtil, MessageExceptionFormatter)
-├── src/main/resources/
-│   ├── application.properties          # Common configs
-│   ├── application-local.properties    # Local overrides (MySQL, disable Datadog)
-│   ├── application-deploy.properties   # Deploy overrides (env vars, enable Datadog)
-│   ├── java-api-boilerplate.yaml       # OpenAPI 3.0 spec
-│   ├── messages_en.properties          # Error messages
-│   └── docs/README.md                  # This documentation
-├── src/test/
-│   ├── java/
-│   │   ├── unit/                       # Unit tests (AuthControllerTest, UsersServiceTest)
-│   │   ├── integration/                # Integration tests with Testcontainers
-│   │   └── bdd/                        # BDD tests with Cucumber
-│   └── resources/
-├── performance/                        # JMeter scripts (users-performance.jmx)
+├── docker-compose.yml                  # Local environment with Docker (API + MySQL)
+├── Dockerfile                          # Containerization
+├── Jenkinsfile                         # CI/CD pipeline
+├── mvnw                                # Maven wrapper
+├── mvnw.cmd                            # Maven wrapper for Windows
+├── pom.xml                             # Maven configuration
+├── README.md                           # This documentation
 ├── helm/                               # Helm Charts per environment
 │   ├── dev/
 │   ├── hml/
 │   └── prod/
-├── docker-compose.yml                  # Local environment with Docker (API + MySQL)
-├── Dockerfile                          # Containerization
-├── Jenkinsfile                         # CI/CD pipeline
-└── README.md                           # This documentation
+├── logs/                               # Application logs
+├── performance/                        # JMeter scripts (users-performance.jmx)
+├── src/
+│   ├── main/
+│   │   ├── java/br/com/wendelnogueira/javaapiboilerplate/
+│   │   │   ├── api/                 # Generated OpenAPI interfaces
+│   │   │   ├── controller/          # REST Controllers
+│   │   │   ├── service/             # Business logic (AuthService, UsersService)
+│   │   │   ├── repository/          # JPA data access
+│   │   │   ├── model/               # JPA entities
+│   │   │   ├── dto/                 # Data Transfer Objects
+│   │   │   ├── mapper/              # MapStruct mappings
+│   │   │   ├── exception/           # Custom exceptions and GlobalExceptionHandler
+│   │   │   ├── security/            # JWT security configurations
+│   │   │   ├── config/              # General configurations
+│   │   │   └── util/                # Utilities (JwtUtil, MessageExceptionFormatter)
+│   │   └── resources/
+│   │       ├── application.properties          # Common configs
+│   │       ├── application-local.properties    # Local overrides (MySQL, disable Datadog)
+│   │       ├── application-deploy.properties   # Deploy overrides (env vars, enable Datadog)
+│   │       ├── java-api-boilerplate.yaml       # OpenAPI 3.0 spec
+│   │       ├── messages_en.properties          # Error messages
+│   │       └── docs/README.md                  # This documentation
+│   └── test/
+│       ├── java/br/com/wendelnogueira/javaapiboilerplate/
+│       │   ├── bdd/                        # BDD tests with Cucumber (UserManagementSteps, CucumberTest)
+│       │   ├── integration/                # Integration tests with Testcontainers
+│       │   └── unit/                       # Unit tests (AuthControllerTest, UsersServiceTest)
+│       └── resources/
+│           ├── application.properties      # Test configs
+│           └── features/                   # Cucumber feature files
+├── target/                             # Build output
+└── ...
 ```
 
 ## Technologies
@@ -167,6 +177,7 @@ mvn test -Dtest="*ControllerTest" -Dspring.profiles.active=test
 ```
 
 ### BDD Tests (Cucumber)
+Note: Cucumber tests are currently not fully configured due to Testcontainers integration issues. The test runner exists, but may fail in some environments.
 ```bash
 mvn test -Dtest="*CucumberTest" -Dspring.profiles.active=test
 ```
@@ -181,16 +192,55 @@ mvn test -Dspring.profiles.active=test
 ### 1. Install JMeter
 Download and install Apache JMeter from https://jmeter.apache.org/.
 
-### 2. Run Scripts
+### 2. Update Script for Authentication
+The `users-performance.jmx` script includes a login sampler, but to properly test authenticated endpoints, you need to:
+- Add a JSON Extractor to extract the JWT token from the login response.
+- Add an HTTP Header Manager with `Authorization: Bearer ${token}` for subsequent requests.
+
+Open the script in JMeter GUI and configure accordingly.
+
+### 3. Run Scripts
 ```bash
 jmeter -n -t performance/users-performance.jmx -l results.jtl
 ```
 
-### 3. View Reports
+### 4. View Reports
 Open `results.jtl` in JMeter or generate HTML report:
 ```bash
 jmeter -g results.jtl -o report/
 ```
+
+## Resilience
+
+The application uses Resilience4j for fault tolerance:
+- **Retry**: Configured for external calls with exponential backoff.
+- Settings in `application.properties`: max attempts, wait duration, etc.
+
+## Security
+
+- **JWT Authentication**: Bearer tokens for protected endpoints.
+- **Roles**: ADMIN and USER.
+- **Free Endpoints**: `/actuator/health`, `/auth/login`, `/auth/register`, `/swagger-ui/**`, `/v3/api-docs/**`.
+
+## Observability
+
+- **OTEL**: Distributed tracing (enabled in deploy profile).
+- **Datadog**: Metrics and logs (enabled in deploy profile via `DATADOG_API_KEY` and `DATADOG_APP_KEY`).
+- **Actuator**: Health checks, Prometheus metrics exposed at `/actuator/**`.
+
+## Error Handling
+
+The API uses standardized error responses with codes and messages:
+
+- 01: Error with authorization (JWT issues)
+- 02: Unexpected error with authorization
+- 03: Authentication error
+- 04: Invalid credentials
+- 05: User not found
+- 06: Access denied
+- 07: Unexpected error
+- 08: Invalid request body
+- 09: User already exists
 
 ## Deployment
 
@@ -200,6 +250,8 @@ docker-compose up --build
 ```
 
 ### Kubernetes via Helm
+Ensure you have the required secrets (e.g., MySQL credentials, Datadog keys) in the namespace.
+
 ```bash
 # Dev
 helm upgrade --install java-api-boilerplate-dev ./helm/dev --namespace dev
@@ -221,54 +273,15 @@ The `Jenkinsfile` automates:
 - Push to ECR
 - Deploy to Dev/HML/Prod based on branch (develop/release/master)
 
-## Security
+## Troubleshooting
 
-- **JWT Authentication**: Bearer tokens for protected endpoints.
-- **Roles**: ADMIN and USER.
-- **Free Endpoints**: `/actuator/health`, `/auth/login`, `/auth/register`, `/swagger-ui/**`, `/v3/api-docs/**`.
+- If tests fail, ensure Docker is running for Testcontainers.
+- For local MySQL, set `spring.datasource.url` in `application-local.properties`.
+- Check logs in `logs/application.log` for errors.
 
-## Observability
+## API Versioning
 
-- **OTEL**: Distributed tracing (enabled in deploy profile).
-- **Datadog**: Metrics and logs (enabled in deploy profile).
-- **Actuator**: Health checks, Prometheus metrics.
-
-## Error Handling
-
-The API uses standardized error responses with codes and messages:
-
-- 01: Error with authorization (JWT issues)
-- 02: Unexpected error with authorization
-- 03: Authentication error
-- 04: Invalid credentials
-- 05: User not found
-- 06: Access denied
-- 07: Unexpected error
-- 08: Invalid request body
-- 09: User already exists
-
-## Standards and Conventions
-
-### Branches
-- `master`: Production
-- `develop`: Development
-- `feature/*`: New features
-- `release/*`: Releases
-- `hotfix/*`: Urgent fixes
-
-### Commits
-- `feat:` New features
-- `fix:` Fixes
-- `docs:` Documentation
-- `refactor:` Refactoring
-- `test:` Tests
-
-### Code
-- Java 21 features
-- Lombok to reduce boilerplate
-- MapStruct for mappings
-- Custom exceptions with MessageExceptionFormatter
-- Validations within functions
+The API is versioned via URL paths (e.g., `/v1/auth/login`), but currently at v1.
 
 ## Contribution
 
@@ -277,6 +290,14 @@ The API uses standardized error responses with codes and messages:
 3. Commit your changes (`git commit -m 'feat: new feature'`)
 4. Push to the branch (`git push origin feature/new-feature`)
 5. Open a Pull Request
+
+### Code Standards
+- Java 21 features
+- Lombok to reduce boilerplate
+- MapStruct for mappings
+- Custom exceptions with MessageExceptionFormatter
+- Validations within functions
+- Follow hexagonal architecture
 
 ## License
 
